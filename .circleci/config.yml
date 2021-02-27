@@ -1,0 +1,17 @@
+version: '2.1'
+orbs:
+  aws-ecr: circleci/aws-ecr@6.15.3
+  aws-ecs: circleci/aws-ecs@2.0.0
+workflows:
+  build-and-deploy:
+    jobs:
+      - aws-ecr/build-and-push-image:
+          repo: '${MY_APP_PREFIX}'
+          tag: 'latest,${CIRCLE_SHA1}'
+      - aws-ecs/deploy-service-update:
+          cluster-name: '${MY_APP_PREFIX}-cluster'
+          container-image-name-updates: 'container=web,tag=${CIRCLE_SHA1}'
+          family: '${MY_APP_PREFIX}'
+          service-name: '${MY_APP_PREFIX}-cluster-service'
+          requires:
+            - aws-ecr/build-and-push-image
